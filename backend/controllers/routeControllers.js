@@ -9,7 +9,7 @@ exports.findRoute = async (req, res) => {
 
     const allRoutes = await Route.find();
 
-    // ✅ STEP 1: DIRECT ROUTE CHECK
+    // STEP 1: DIRECT ROUTE CHECK
     for (let r of allRoutes) {
       if (
         r.source.trim().toLowerCase() === source &&
@@ -27,7 +27,7 @@ exports.findRoute = async (req, res) => {
       }
     }
 
-    // ✅ STEP 2: MULTIPLE INTERCHANGE LOGIC
+    // STEP 2: MULTIPLE INTERCHANGE LOGIC
     const results = [];
 
     for (let r1 of allRoutes) {
@@ -37,7 +37,7 @@ exports.findRoute = async (req, res) => {
 
       if (sourceIndex === -1) continue;
 
-      // 🔥 try stops after source
+      // try stops after source
       for (let i = sourceIndex + 1; i < stops1.length; i++) {
 
         const interchange = stops1[i];
@@ -49,70 +49,70 @@ exports.findRoute = async (req, res) => {
 
           if (r1._id.toString() === r2._id.toString()) continue;
 
-          // ✅ route2 must START from interchange
+          // route2 must START from interchange
           if (r2.source.toLowerCase() !== interchange) continue;
 
           const stops2 = r2.stops.map(s => s.name.toLowerCase());
           const destIndex = stops2.indexOf(destination);
 
-// ❌ must check FIRST
-if (destIndex === -1) continue;
+          //  must check FIRST
+          if (destIndex === -1) continue;
 
-// ------------------ SCORING ------------------
+          // ------------------ SCORING ------------------
 
-const getMinutes = (time) => {
-  if (!time || typeof time !== "string") return 0;
+          const getMinutes = (time) => {
+            if (!time || typeof time !== "string") return 0;
 
-  const parts = time.split(":");
-  if (parts.length !== 2) return 0;
+            const parts = time.split(":");
+            if (parts.length !== 2) return 0;
 
-  const [h, m] = parts.map(Number);
-  if (isNaN(h) || isNaN(m)) return 0;
+            const [h, m] = parts.map(Number);
+            if (isNaN(h) || isNaN(m)) return 0;
 
-  return h * 60 + m;
-};
+            return h * 60 + m;
+          };
 
-const startTime =
-  r1.buses && r1.buses.length > 0
-    ? r1.buses[0].startTime
-    : "23:59";
+          const startTime =
+            r1.buses && r1.buses.length > 0
+              ? r1.buses[0].startTime
+              : "23:59";
 
-const timePenalty = getMinutes(startTime) / 10;
+          const timePenalty = getMinutes(startTime) / 10;
 
-const totalStops = (r1.stops?.length || 0) + (r2.stops?.length || 0);
+          const totalStops = (r1.stops?.length || 0) + (r2.stops?.length || 0);
 
-const score = (totalStops * 10) + timePenalty;
+          const score = (totalStops * 10) + timePenalty;
 
-// 🔥 push ONLY valid routes
-results.push({
-  changeAt: interchange,
-  firstRoute: r1.routeName,
-  secondRoute: r2.routeName,
-  bus1: r1.buses,
-  bus2: r2.buses,
-  totalStops,
-  score
-});
+          //  push ONLY valid routes
+          results.push({
+            changeAt: interchange,
+            firstRoute: r1.routeName,
+            secondRoute: r2.routeName,
+            bus1: r1.buses,
+            bus2: r2.buses,
+            totalStops,
+            score
+          });
 
-          }
         }
       }
-    
+    }
 
-          // ✅ STEP 3: RETURN MULTIPLE OPTIONS
-        if (results.length > 0) {
 
-          // 🔥 sort (optional but powerful)
-        results.sort((a, b) => a.score - b.score);
+    // STEP 3: RETURN MULTIPLE OPTIONS
+    if (results.length > 0) {
 
-        return res.json({
+      //  sort 
+      results.sort((a, b) => a.score - b.score);
+
+      return res.json({
         type: "indirect",
-        best: results[0],     // 🔥 best route
+        best: results[0],     //  best route
         options: results      // all routes
       });
     }
 
-    // ❌ NOTHING FOUND
+    //  NOTHING FOUND
     res.json({
       type: "none",
       message: "No route found"
@@ -124,7 +124,7 @@ results.push({
 };
 
 
-// 🔥 Get Stops
+//  Get Stops
 exports.getStops = async (req, res) => {
   const { routeName } = req.query;
 
