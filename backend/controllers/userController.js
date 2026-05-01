@@ -1,3 +1,4 @@
+const { promisify } = require("util");
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 
@@ -64,5 +65,29 @@ exports.login = async (req, res) => {
 };
 
 exports.protect = async (req, res, next) => {
+  //getting token and to check if it is there
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+  console.log(token);
+
+  if (!token) {
+    return res.status(401).json({
+      status: "fail",
+      message: "You are not logged in! please log in to get access",
+    });
+  }
+
+  //verification of token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  const user = await User.findById(decoded.id);
+  if (!user) {
+    return res.status(401).json({
+      status: "fail",
+      message: "The user belonging to this token does no longer exist",
+    });
+  }
+  console.log(decoded);
   next();
 };
