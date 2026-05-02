@@ -2,8 +2,9 @@ const express = require("express");
 const app = express();
 
 const connectDB = require("./backend/config/db");
-const routeRoutes = require("./backend/routes/routeRoutes");
 
+const routeRoutes = require("./backend/routes/routeRoutes");
+const userRoutes = require("./backend/routes/userRoutes");
 
 require("dotenv").config();
 
@@ -18,9 +19,9 @@ connectDB();
 
 // Routes
 app.use("/", routeRoutes);
+app.use("/auth", userRoutes);
 
 // Server
-
 
 const PORT = process.env.PORT || 4000;
 
